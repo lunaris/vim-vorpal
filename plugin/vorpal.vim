@@ -9,6 +9,16 @@ endif
 
 " Utilities.
 
+function! s:function(name) abort
+  return function(substitute(a:name, '^s:',
+    \ matchstr(expand('<sfile>'), '<SNR>\d\+_'), ''))
+endfunction
+
+function! s:throw(error_message) abort
+  let v:errmsg= 'vorpal: ' . a:error_message
+  throw v:errmsg
+endfunction
+
 function! s:sub(s, pattern, replacement) abort
   return substitute(a:s, '\v\C' . a:pattern, a:replacement, '')
 endfunction
@@ -25,6 +35,13 @@ function! s:shellslash(path)
   endif
 endfunction
 
+function! s:add_methods(namespace, methods) abort
+  for method in a:methods
+    let s:{a:namespace}_prototype[method] =
+      \ s:function('s:' . a:namespace . '_' . method)
+  endfor
+endfunction
+
 let s:commands = []
 
 function! s:command(definition) abort
@@ -39,7 +56,7 @@ endfunction
 
 augroup vorpal_utility
   autocmd!
-  autocmd! User Vorpal call s:define_commands()
+  autocmd User Vorpal call s:define_commands()
 augroup END
 
 " Initialisation.
@@ -134,3 +151,49 @@ augroup vorpal
   autocmd User NERDTreeInit,NERDTreeNewRoot call s:detect(expand('%:p'))
   autocmd VimEnter * if expand('<amatch>')==''|call s:detect(getcwd())|endif
 augroup END
+
+let s:abstract_prototype = {}
+
+" File types.
+
+augroup vorpal_file_types
+  autocmd!
+  autocmd BufEnter *.engine,*.inc,*.install,*.module,*.profile,*.test
+    \ if exists('b:drupal_dirs') |
+      \ set filetype=php |
+    \ endif
+augroup END
+
+" Buffers
+
+let s:buffer_prototype = {}
+
+function! s:buffer(...) abort
+  let buffer = {'#': bufnr(a:0 ? a:1 : '%')}
+  call extend(extend(buffer, s:buffer_prototype, 'keep'),
+    \ s:abstract_prototype, 'keep')
+
+  if buffer.get_var('drupal_dirs') != {}
+    return buffer
+  endif
+
+  call s:throw('not a Drupal file: ' . expand('%:p'))
+endfunction
+
+function! vorpal#buffer(...) abort
+  return s:buffer(a:0 ? a:1 : '%')
+endfunction
+
+function! s:buffer_get_var(name) dict abort
+  return getbufvar(self['#'], a:name)
+endfunction
+
+function! s:buffer_set_var(name, value) dict abort
+  return setbufvar(self['#'], a:name, a:value)
+endfunction
+
+function! s:buffer_line(number) dict abort
+  return getbufline(self['#'], a:number)[0]
+endfunction
+
+call s:add_methods('buffer', ['get_var', 'set_var', 'line'])
