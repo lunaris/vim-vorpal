@@ -156,8 +156,6 @@ augroup vorpal
   autocmd VimEnter * if expand('<amatch>')==''|call s:detect(getcwd())|endif
 augroup END
 
-let s:abstract_prototype = {}
-
 " File types.
 
 augroup vorpal_file_types
@@ -168,9 +166,15 @@ augroup vorpal_file_types
     \ endif
 augroup END
 
-" Buffers
+" Prototype namespaces.
 
 let s:buffer_prototype = {}
+
+let s:abstract_prototype = {}
+let s:module_prototype = {}
+let s:theme_prototype = {}
+
+" Buffers
 
 function! s:buffer(...) abort
   let buffer = {'#': bufnr(a:0 ? a:1 : '%')}
@@ -204,9 +208,83 @@ function! s:buffer_drupal_dirs() dict abort
   return getbufvar(self['#'], 'drupal_dirs')
 endfunction
 
-call s:add_methods('buffer', ['get_var', 'set_var', 'line', 'drupal_dirs'])
+function! s:buffer_module() dict abort
+  let drupal_dirs = self.drupal_dirs()
+  if has_key(drupal_dirs, 'module')
+    let module = drupal_dirs['module']
+    call extend(extend(module, s:module_prototype, 'keep'),
+      \ s:abstract_prototype, 'keep')
+
+    return module
+  endif
+
+  return {}
+endfunction
+
+function! s:buffer_theme() dict abort
+  let drupal_dirs = self.drupal_dirs()
+  if has_key(drupal_dirs, 'theme')
+    let theme = drupal_dirs['theme']
+    call extend(extend(theme, s:theme_prototype, 'keep'),
+      \ s:abstract_prototype, 'keep')
+
+    return theme
+  endif
+
+  return {}
+endfunction
+
+call s:add_methods('buffer',
+  \ ['get_var', 'set_var', 'line', 'drupal_dirs',
+    \ 'module', 'theme'])
+
+function s:abstract_info() dict abort
+  return self['path'] . '/' . self['name'] . '.info'
+endfunction
+
+function! s:LoadInfo() abort
+  let buffer = vorpal#buffer()
+
+  let module = buffer.module()
+  if module != {}
+    execute 'edit ' . module.info()
+    return
+  endif
+
+  let theme = buffer.theme()
+  if theme != {}
+    execute 'edit ' . theme.info()
+    return
+  endif
+endfunction
+
+call s:add_methods('abstract', ['info'])
+
+call s:command('-nargs=0 VorpalLoadInfo :execute s:LoadInfo()')
 
 " Modules.
+
+function! s:module_install() dict abort
+  return self['path'] . '/' . self['name'] . '.install'
+endfunction
+
+function! s:module_module() dict abort
+  return self['path'] . '/' . self['name'] . '.module'
+endfunction
+
+function! s:LoadModuleInstall() abort
+  let module = vorpal#buffer().module()
+  if module != {}
+    execute 'edit ' . module.install()
+  endif
+endfunction
+
+function! s:LoadModuleModule() abort
+  let module = vorpal#buffer().module()
+  if module != {}
+    execute 'edit ' . module.module()
+  endif
+endfunction
 
 function! s:AddModuleHook(name) abort
   let drupal_dirs = vorpal#buffer().drupal_dirs()
@@ -216,4 +294,8 @@ function! s:AddModuleHook(name) abort
   endif
 endfunction
 
-call s:command('-nargs=1 Dhook :execute s:AddModuleHook("<args>")')
+call s:add_methods('module', ['install', 'module'])
+
+call s:command('-nargs=0 VorpalLoadModuleInstall :execute s:LoadModuleInstall()')
+call s:command('-nargs=0 VorpalLoadModuleModule :execute s:LoadModuleModule()')
+call s:command('-nargs=1 VorpalAddModuleHook :execute s:AddModuleHook("<args>")')
