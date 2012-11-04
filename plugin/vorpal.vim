@@ -110,13 +110,17 @@ function! vorpal#extract_drupal_dirs(path) abort
 
     let current_tail = fnamemodify(current, ':t')
     if current_tail ==# 'libraries' && info_dir !=# ''
-      let dirs['library'] = info_dir
+      let dirs['library'] =
+        \ {'name': fnamemodify(info_dir, ':t'), 'path': info_dir}
     elseif current_tail ==# 'modules' && info_dir !=# ''
-      let dirs['module'] = info_dir
+      let dirs['module'] =
+        \ {'name': fnamemodify(info_dir, ':t'), 'path': info_dir}
     elseif current_tail ==# 'profiles' && info_dir !=# ''
-      let dirs['profile'] = info_dir
+      let dirs['profile'] =
+        \ {'name': fnamemodify(info_dir, ':t'), 'path': info_dir}
     elseif current_tail ==# 'themes' && info_dir !=# ''
-      let dirs['theme'] = info_dir
+      let dirs['theme'] =
+        \ {'name': fnamemodify(info_dir, ':t'), 'path': info_dir}
     endif
 
     let previous = current
@@ -196,4 +200,20 @@ function! s:buffer_line(number) dict abort
   return getbufline(self['#'], a:number)[0]
 endfunction
 
-call s:add_methods('buffer', ['get_var', 'set_var', 'line'])
+function! s:buffer_drupal_dirs() dict abort
+  return getbufvar(self['#'], 'drupal_dirs')
+endfunction
+
+call s:add_methods('buffer', ['get_var', 'set_var', 'line', 'drupal_dirs'])
+
+" Modules.
+
+function! s:AddModuleHook(name) abort
+  let drupal_dirs = vorpal#buffer().drupal_dirs()
+  if has_key(drupal_dirs, 'module')
+    call append(line('.'),
+      \ 'function ' . drupal_dirs['module']['name'] . '_' . a:name . '() {}')
+  endif
+endfunction
+
+call s:command('-nargs=1 Dhook :execute s:AddModuleHook("<args>")')
