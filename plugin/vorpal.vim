@@ -164,9 +164,9 @@ augroup END
 
 augroup vorpal_file_types
   autocmd!
-  autocmd BufEnter *.engine,*.inc,*.install,*.module,*.profile,*.test
+  autocmd BufEnter *.engine,*.inc,*.install,*.module,*.php,*.profile,*.test
     \ if exists('b:drupal_dirs') |
-      \ set filetype=php |
+      \ set filetype=drupal.php |
     \ endif
 augroup END
 

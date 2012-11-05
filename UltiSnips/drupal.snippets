@@ -1,0 +1,12 @@
+snippet hook_ "hook expansion"
+`!p snip.rv = vim.eval("vorpal#buffer().module()").get("name", "hook") + "_"`
+endsnippet
+
+snippet hook_ "hook definition" !b
+/**
+ * Implementation of hook_$1().
+ */
+function `!p snip.rv = vim.eval("vorpal#buffer().module()").get("name", "hook")`_$1($2) {
+  $0
+}
+endsnippet
