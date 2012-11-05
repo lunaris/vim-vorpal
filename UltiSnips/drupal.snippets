@@ -23,6 +23,50 @@ function `!p snip.rv = vim.eval("vorpal#buffer().module()").get("name", "hook")`
 }
 endsnippet
 
+# Arrays.
+
+snippet array( "array"
+array(
+  $0
+);
+endsnippet
+
+# Entities.
+
+snippet entity_info "entity information (item)"
+'${1:`!p snip.rv = vim.eval("vorpal#buffer().module()").get("name", "module")`_${2:entity}}' => array(
+  'label' => t('$3'),
+  'plural label' => t('${4:$3s}'),
+  'module' => '${5:`!p snip.rv = vim.eval("vorpal#buffer().module()").get("name", "module")`}',
+  'entity class' => '\\Drupal\\${6:`!p snip.rv = vim.eval("vorpal#buffer().module()").get("name", "module")`}\\$7',
+  'controller class' => '\\Drupal\\${8:$6}\\${9:$7}\\${10:Controller}',
+  'base table' => '${11:$1}',
+  'uri callback' => '${12:entity_class_uri}',
+  'access callback' => '${13:$1${14:_access}}',
+  'fieldable' => ${15:TRUE},
+  'entity keys' => array(
+    'id' => 'id',
+    'label' => 'name',
+  ),
+  'static cache' => TRUE,
+  'bundles' => array(
+    '${16:$1}' => array(
+      'label' => '${17:$3}',
+      'admin' => array(
+        'path' => '$18',
+        'access arguments' => array($19),
+      ),
+    ),
+  ),
+  'view modes' => array(
+    'full' => array(
+      'label' => t('${20:Full details}'),
+      'custom settings' => FALSE,
+    ),
+  ),
+),
+endsnippet
+
 # Menus.
 
 snippet menu_item "menu item definition"
