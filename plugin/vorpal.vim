@@ -92,9 +92,9 @@ function! vorpal#extract_drupal_dirs(path) abort
     let type = getftype(current)
     if vorpal#is_drupal_dir(current)
       if type ==# 'dir'
-        let dirs['drupal'] = current
+        let dirs['drupal'] = {'path': current}
       elseif type ==# 'link'
-        let dirs['drupal'] = resolve(current)
+        let dirs['drupal'] = {'path': resolve(current)}
       endif
 
       return dirs
@@ -110,17 +110,21 @@ function! vorpal#extract_drupal_dirs(path) abort
 
     let current_tail = fnamemodify(current, ':t')
     if current_tail ==# 'libraries' && info_dir !=# ''
-      let dirs['library'] =
-        \ {'name': fnamemodify(info_dir, ':t'), 'path': info_dir}
+      let dirs['extension'] =
+        \ {'type': 'library', 'name': fnamemodify(info_dir, ':t'),
+          \ 'path': info_dir}
     elseif current_tail ==# 'modules' && info_dir !=# ''
-      let dirs['module'] =
-        \ {'name': fnamemodify(info_dir, ':t'), 'path': info_dir}
+      let dirs['extension'] =
+        \ {'type': 'module', 'name': fnamemodify(info_dir, ':t'),
+          \ 'path': info_dir}
     elseif current_tail ==# 'profiles' && info_dir !=# ''
-      let dirs['profile'] =
-        \ {'name': fnamemodify(info_dir, ':t'), 'path': info_dir}
+      let dirs['extension'] =
+        \ {'type': 'profile', 'name': fnamemodify(info_dir, ':t'),
+          \ 'path': info_dir}
     elseif current_tail ==# 'themes' && info_dir !=# ''
-      let dirs['theme'] =
-        \ {'name': fnamemodify(info_dir, ':t'), 'path': info_dir}
+      let dirs['extension'] =
+        \ {'type': 'theme', 'name': fnamemodify(info_dir, ':t'),
+          \ 'path': info_dir}
     endif
 
     let previous = current
@@ -168,9 +172,13 @@ augroup END
 
 " Prototype namespaces.
 
+let s:abstract_prototype = {}
+
 let s:buffer_prototype = {}
 
-let s:abstract_prototype = {}
+let s:drupal_prototype = {}
+
+let s:extension_prototype = {}
 let s:module_prototype = {}
 let s:theme_prototype = {}
 
@@ -208,68 +216,85 @@ function! s:buffer_drupal_dirs() dict abort
   return getbufvar(self['#'], 'drupal_dirs')
 endfunction
 
-function! s:buffer_module() dict abort
+function! s:buffer_drupal() dict abort
   let drupal_dirs = self.drupal_dirs()
-  if has_key(drupal_dirs, 'module')
-    let module = drupal_dirs['module']
-    call extend(extend(module, s:module_prototype, 'keep'),
+  if has_key(drupal_dirs, 'drupal')
+    let drupal = drupal_dirs['drupal']
+    call extend(extend(drupal, s:drupal_prototype, 'keep'),
       \ s:abstract_prototype, 'keep')
 
-    return module
+    return drupal
   endif
 
   return {}
+endfunction
+
+function! s:buffer_extension() dict abort
+  let drupal_dirs = self.drupal_dirs()
+  if has_key(drupal_dirs, 'extension')
+    let extension = drupal_dirs['extension']
+
+    call extend(extend(extend(extension,
+      \ s:{extension['type']}_prototype, 'keep'),
+        \ s:extension_prototype, 'keep'), s:abstract_prototype, 'keep')
+
+    return extension
+  endif
+
+  return {}
+endfunction
+
+function! s:buffer_library() dict abort
+  let extension = self.extension()
+  return extension != {} && extension['type'] ==# 'library' ?
+    extension : {}
+endfunction
+
+function! s:buffer_module() dict abort
+  let extension = self.extension()
+  return extension != {} && extension['type'] ==# 'module' ?
+    \ extension : {}
+endfunction
+
+function! s:buffer_profile() dict abort
+  let extension = self.extension()
+  return extension != {} && extension['type'] ==# 'profile' ?
+    \ extension : {}
 endfunction
 
 function! s:buffer_theme() dict abort
-  let drupal_dirs = self.drupal_dirs()
-  if has_key(drupal_dirs, 'theme')
-    let theme = drupal_dirs['theme']
-    call extend(extend(theme, s:theme_prototype, 'keep'),
-      \ s:abstract_prototype, 'keep')
-
-    return theme
-  endif
-
-  return {}
+  let extension = self.extension()
+  return extension != {} && extension['type'] ==# 'theme' ?
+    \ extension : {}
 endfunction
 
 call s:add_methods('buffer',
-  \ ['get_var', 'set_var', 'line', 'drupal_dirs',
-    \ 'module', 'theme'])
+  \ ['get_var', 'set_var', 'line', 'drupal_dirs', 'drupal',
+    \ 'extension', 'library', 'module', 'profile', 'theme'])
 
-function s:abstract_info() dict abort
-  return self['path'] . '/' . self['name'] . '.info'
+function s:extension_info() dict abort
+  return self.path . '/' . self.name . '.info'
 endfunction
 
 function! s:LoadInfo() abort
-  let buffer = vorpal#buffer()
-
-  let module = buffer.module()
-  if module != {}
-    execute 'edit ' . module.info()
-    return
-  endif
-
-  let theme = buffer.theme()
-  if theme != {}
-    execute 'edit ' . theme.info()
-    return
+  let extension = vorpal#buffer().extension()
+  if extension != {}
+    execute 'edit ' . extension.info()
   endif
 endfunction
 
-call s:add_methods('abstract', ['info'])
+call s:add_methods('extension', ['info'])
 
-call s:command('-nargs=0 VorpalLoadInfo :execute s:LoadInfo()')
+call s:command('-nargs=0 DrupalLoadInfo :execute s:LoadInfo()')
 
 " Modules.
 
 function! s:module_install() dict abort
-  return self['path'] . '/' . self['name'] . '.install'
+  return self.path . '/' . self.name . '.install'
 endfunction
 
 function! s:module_module() dict abort
-  return self['path'] . '/' . self['name'] . '.module'
+  return self.path . '/' . self.name . '.module'
 endfunction
 
 function! s:LoadModuleInstall() abort
@@ -287,15 +312,37 @@ function! s:LoadModuleModule() abort
 endfunction
 
 function! s:AddModuleHook(name) abort
-  let drupal_dirs = vorpal#buffer().drupal_dirs()
-  if has_key(drupal_dirs, 'module')
+  let module = vorpal#buffer().module()
+  if module != {}
     call append(line('.'),
-      \ 'function ' . drupal_dirs['module']['name'] . '_' . a:name . '() {}')
+      \ 'function ' . module.name . '_' . a:name . '() {}')
   endif
 endfunction
 
 call s:add_methods('module', ['install', 'module'])
 
-call s:command('-nargs=0 VorpalLoadModuleInstall :execute s:LoadModuleInstall()')
-call s:command('-nargs=0 VorpalLoadModuleModule :execute s:LoadModuleModule()')
-call s:command('-nargs=1 VorpalAddModuleHook :execute s:AddModuleHook("<args>")')
+call s:command('-nargs=0 DrupalLoadModuleInstall :execute s:LoadModuleInstall()')
+call s:command('-nargs=0 DrupalLoadModuleModule :execute s:LoadModuleModule()')
+call s:command('-nargs=1 DrupalAddModuleHook :execute s:AddModuleHook("<args>")')
+
+function! s:execute_in_drupal_dir(cmd) abort
+  let cd = exists('*haslocaldir') && haslocaldir() ? 'lcd ' : 'cd '
+  let dir = getcwd()
+
+  try
+    execute cd . '`=s:buffer().drupal().path`'
+    execute a:cmd
+  finally
+    execute cd . '`=dir`'
+  endtry
+endfunction
+
+function! s:Drush(cmd) abort
+  let drush = g:vorpal_drush_executable
+  let cmd = matchstr(a:cmd, '\v\C.{-}%($|\\@<!%(\\\\)*\|)@=')
+
+  call s:execute_in_drupal_dir('!' . drush . ' ' . cmd)
+  return matchstr(a:cmd, '\v\C\\@<!%(\\\\)*\|\zs.*')
+endfunction
+
+call s:command('-nargs=* Drush :execute s:Drush(<q-args>)')
