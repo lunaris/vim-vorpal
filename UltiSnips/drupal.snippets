@@ -1,12 +1,41 @@
-snippet hook_ "hook expansion"
+# Names.
+
+snippet module_ "module" w
+`!p snip.rv = vim.eval("vorpal#buffer().module()").get("name", "module") + "_"`
+endsnippet
+
+snippet theme_ "theme" w
+`!p snip.rv = vim.eval("vorpal#buffer().module()").get("name", "theme") + "_"`
+endsnippet
+
+# Hooks.
+
+snippet hook_ "hook (expansion)" w
 `!p snip.rv = vim.eval("vorpal#buffer().module()").get("name", "hook") + "_"`
 endsnippet
 
-snippet hook_ "hook definition" !b
+snippet hook_ "hook (definition)" !b
 /**
  * Implementation of hook_$1().
  */
 function `!p snip.rv = vim.eval("vorpal#buffer().module()").get("name", "hook")`_$1($2) {
   $0
 }
+endsnippet
+
+# Menus.
+
+snippet menu_item "menu item definition"
+\$items['$1'] = array(
+  'title' => '$2',
+  'description' => '$3',
+  'page callback' => '${4:`!p snip.rv = vim.eval("vorpal#buffer().module()").get("name", "module")`_${5:${1/.+\/(.*)/$1/}}}',
+  'page arguments' => array($6),
+  'access callback' => '${7:`!p snip.rv = vim.eval("vorpal#buffer().module()").get("name", "module")`_${8:$5${9:_access}}}',
+  'access arguments' => array($10),
+  'file' => '$11',
+  'type' => $12,
+);
+
+$0
 endsnippet
