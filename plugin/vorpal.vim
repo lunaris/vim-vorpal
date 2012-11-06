@@ -182,7 +182,7 @@ let s:extension_prototype = {}
 let s:module_prototype = {}
 let s:theme_prototype = {}
 
-" Buffers
+" Buffers.
 
 function! s:buffer(...) abort
   let buffer = {'#': bufnr(a:0 ? a:1 : '%')}
@@ -272,11 +272,13 @@ call s:add_methods('buffer',
   \ ['get_var', 'set_var', 'line', 'drupal_dirs', 'drupal',
     \ 'extension', 'library', 'module', 'profile', 'theme'])
 
+" Extensions (modules, themes, etc.).
+
 function s:extension_info() dict abort
   return self.path . '/' . self.name . '.info'
 endfunction
 
-function! s:LoadInfo() abort
+function! s:EditInfo() abort
   let extension = vorpal#buffer().extension()
   if extension != {}
     execute 'edit ' . extension.info()
@@ -285,7 +287,7 @@ endfunction
 
 call s:add_methods('extension', ['info'])
 
-call s:command('-nargs=0 DrupalLoadInfo :execute s:LoadInfo()')
+call s:command('-nargs=0 DrupalEditInfo :execute s:EditInfo()')
 
 " Modules.
 
@@ -297,14 +299,14 @@ function! s:module_module() dict abort
   return self.path . '/' . self.name . '.module'
 endfunction
 
-function! s:LoadModuleInstall() abort
+function! s:EditModuleInstall() abort
   let module = vorpal#buffer().module()
   if module != {}
     execute 'edit ' . module.install()
   endif
 endfunction
 
-function! s:LoadModuleModule() abort
+function! s:EditModuleModule() abort
   let module = vorpal#buffer().module()
   if module != {}
     execute 'edit ' . module.module()
@@ -321,9 +323,11 @@ endfunction
 
 call s:add_methods('module', ['install', 'module'])
 
-call s:command('-nargs=0 DrupalLoadModuleInstall :execute s:LoadModuleInstall()')
-call s:command('-nargs=0 DrupalLoadModuleModule :execute s:LoadModuleModule()')
+call s:command('-nargs=0 DrupalEditModuleInstall :execute s:LoadEditInstall()')
+call s:command('-nargs=0 DrupalEditModuleModule :execute s:LoadEditModule()')
 call s:command('-nargs=1 DrupalAddModuleHook :execute s:AddModuleHook("<args>")')
+
+" Drush.
 
 function! s:execute_in_drupal_dir(cmd) abort
   let cd = exists('*haslocaldir') && haslocaldir() ? 'lcd ' : 'cd '
