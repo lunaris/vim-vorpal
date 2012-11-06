@@ -346,3 +346,19 @@ function! s:Drush(cmd) abort
 endfunction
 
 call s:command('-nargs=* Drush :execute s:Drush(<q-args>)')
+
+" Python helpers.
+
+function! vorpal#module_name(...) abort
+  let default = a:0 > 0 ? a:1 : 'module'
+  let module = vorpal#buffer().module()
+
+  return module == {} ? default : module.name
+endfunction
+
+function! vorpal#theme_name(...) abort
+  let default = a:0 > 0 ? a:1 : 'theme'
+  let theme = vorpal#buffer().theme()
+
+  return theme == {} ? default : theme.name
+endfunction
