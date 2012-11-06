@@ -1,24 +1,34 @@
+global !p
+
+def module_name(default = "module"):
+  return vim.eval("vorpal#buffer().module()").get("name", default)
+
+def theme_name(default = "theme"):
+  return vim.eval("vorpal#buffer().theme()").get("name", default)
+
+endglobal
+
 # Names.
 
 snippet module_ "module" w
-`!v vorpal#module_name()`_
+`!p snip.rv = module_name()`_
 endsnippet
 
 snippet theme_ "theme" w
-`!v vorpal#theme_name()`_
+`!p snip.rv = theme_name()`_
 endsnippet
 
 # Hooks.
 
 snippet hook_ "hook (expansion)" w
-`!v vorpal#module_name('hook')`_
+`!p snip.rv = module_name("hook")`_
 endsnippet
 
 snippet hook_ "hook (definition)" !b
 /**
  * Implementation of hook_$1().
  */
-function `!v vorpal#module_name('hook')`_$1($2) {
+function `!p snip.rv = module_name("hook")`_$1($2) {
   $0
 }
 endsnippet
@@ -34,11 +44,11 @@ endsnippet
 # Entities.
 
 snippet entity_info "entity information (item)"
-`${1:`!v vorpal#module_name()`_${2:entity}}' => array(
+`${1:`!p snip.rv = module_name()`_${2:entity}}' => array(
   'label' => t('$3'),
   'plural label' => t('${4:$3s}'),
-  'module' => '${5:`!v vorpal#module_name()`}',
-  'entity class' => '\\Drupal\\${6:`!v vorpal#module_name()`}\\$7',
+  'module' => '${5:`!p snip.rv = module_name()`}',
+  'entity class' => '\\Drupal\\${6:`!p snip.rv = module_name()`}\\$7',
   'controller class' => '\\Drupal\\${8:$6}\\${9:$7}\\${10:Controller}',
   'base table' => '${11:$1}',
   'uri callback' => '${12:entity_class_uri}',
@@ -73,9 +83,9 @@ snippet menu_item "menu item definition"
 \$items['$1'] = array(
   'title' => '$2',
   'description' => '$3',
-  'page callback' => '${4:`!v vorpal#module_name()`_${5:${1/.+\/(.*)/$1/}}}',
+  'page callback' => '${4:`!p snip.rv = module_name()`_${5:${1/.+\/(.*)/$1/}}}',
   'page arguments' => array($6),
-  'access callback' => '${7:`!v vorpal#module_name()`_${8:$5${9:_access}}}',
+  'access callback' => '${7:`!p snip.rv = module_name()`_${8:$5${9:_access}}}',
   'access arguments' => array($10),
   'file' => '$11',
   'type' => $12,
