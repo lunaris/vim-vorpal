@@ -1,5 +1,7 @@
 global !p
 
+import vim
+
 def module_name(default = "module"):
   return vim.eval("vorpal#buffer().module()").get("name", default)
 
