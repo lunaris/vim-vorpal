@@ -353,15 +353,20 @@ function! s:execute_in_drupal_dir(cmd) abort
   endtry
 endfunction
 
-function! s:Drush(cmd) abort
-  let drush = g:vorpal_drush_executable
+function! s:Drush(bang, cmd) abort
+  if a:bang
+    let drush = g:vorpal_drush_executable . ' -y'
+  else
+    let drush = g:vorpal_drush_executable
+  endif
+
   let cmd = matchstr(a:cmd, '\v\C.{-}%($|\\@<!%(\\\\)*\|)@=')
 
   call s:execute_in_drupal_dir('!' . drush . ' ' . cmd)
   return matchstr(a:cmd, '\v\C\\@<!%(\\\\)*\|\zs.*')
 endfunction
 
-call s:command('-nargs=* Drush :execute s:Drush(<q-args>)')
+call s:command('-bang -nargs=* Drush :execute s:Drush(<bang>0, <q-args>)')
 
 function! s:DrushCacheClear(...) abort
   let cache = 'all'
@@ -369,7 +374,24 @@ function! s:DrushCacheClear(...) abort
     let cache = a:1
   endif
 
-  call s:Drush('cache-clear ' . cache)
+  call s:Drush(0, 'cache-clear ' . cache)
 endfunction
 
 call s:command('-nargs=? DrushCacheClear :execute s:DrushCacheClear(<args>)')
+
+" Reinstalls the given list of modules, or the current module if no arguments
+" are provided.
+function! s:DrushReinstall(bang, ...) abort
+  if a:0 > 0
+    let modules = join(a:000)
+  else
+    let module = vorpal#buffer().module()
+    if module != {}
+      let modules = module.name
+    endif
+  endif
+
+  call s:Drush(a:bang, 'devel-reinstall ' . modules)
+endfunction
+
+call s:command('-bang -nargs=* DrushReinstall :execute s:DrushReinstall(<bang>0, <args>)')
