@@ -340,8 +340,8 @@ endfunction
 
 call s:add_methods('module', ['install', 'module'])
 
-call s:command('-nargs=0 DrupalEditModuleInstall :execute s:LoadEditInstall()')
-call s:command('-nargs=0 DrupalEditModuleModule :execute s:LoadEditModule()')
+call s:command('-nargs=0 DrupalEditModuleInstall :execute s:EditModuleInstall()')
+call s:command('-nargs=0 DrupalEditModuleModule :execute s:EditModuleModule()')
 call s:command('-nargs=0 DrupalGotoModuleHookMenu :execute s:GotoModuleHookMenu()')
 call s:command('-nargs=1 DrupalAddModuleHook :execute s:AddModuleHook("<args>")')
 
@@ -368,19 +368,3 @@ function! s:Drush(cmd) abort
 endfunction
 
 call s:command('-nargs=* Drush :execute s:Drush(<q-args>)')
-
-" Python helpers.
-
-function! vorpal#module_name(...) abort
-  let default = a:0 > 0 ? a:1 : 'module'
-  let module = vorpal#buffer().module()
-
-  return module == {} ? default : module.name
-endfunction
-
-function! vorpal#theme_name(...) abort
-  let default = a:0 > 0 ? a:1 : 'theme'
-  let theme = vorpal#buffer().theme()
-
-  return theme == {} ? default : theme.name
-endfunction
