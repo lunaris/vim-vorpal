@@ -329,15 +329,7 @@ endfunction
 function! s:GotoModuleHookMenu() abort
   let module = vorpal#buffer().module()
   if module != {}
-    execute 'tjump' module.name . '_menu'
-  endif
-endfunction
-
-function! s:AddModuleHook(name) abort
-  let module = vorpal#buffer().module()
-  if module != {}
-    call append(line('.'),
-      \ 'function ' . module.name . '_' . a:name . '() {}')
+    execute 'tag' module.name . '_menu'
   endif
 endfunction
 
@@ -346,7 +338,6 @@ call s:add_methods('module', ['install', 'module'])
 call s:command('-nargs=0 DrupalEditModuleInstall :execute s:EditModuleInstall()')
 call s:command('-nargs=0 DrupalEditModuleModule :execute s:EditModuleModule()')
 call s:command('-nargs=0 DrupalGotoModuleHookMenu :execute s:GotoModuleHookMenu()')
-call s:command('-nargs=1 DrupalAddModuleHook :execute s:AddModuleHook("<args>")')
 
 " Drush.
 
@@ -371,3 +362,14 @@ function! s:Drush(cmd) abort
 endfunction
 
 call s:command('-nargs=* Drush :execute s:Drush(<q-args>)')
+
+function! s:DrushCacheClear(...) abort
+  let cache = 'all'
+  if a:0 > 0
+    let cache = a:1
+  endif
+
+  call s:Drush('cache-clear ' . cache)
+endfunction
+
+call s:command('-nargs=? DrushCacheClear :execute s:DrushCacheClear(<args>)')
