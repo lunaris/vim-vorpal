@@ -150,6 +150,16 @@ function! s:detect(path)
 
   if exists('b:drupal_dirs')
     silent doautocmd User Vorpal
+
+    let buffer = vorpal#buffer()
+    let tags_file = b:drupal_dirs['drupal']['path'] . '/tags'
+
+    if stridx(buffer.get_var('&tags'), escape(tags_file, ', ')) == -1 &&
+        \ filereadable(tags_file)
+
+      call buffer.set_var('&tags', escape(tags_file, ', ') .
+        \ ',' . buffer.get_var('&tags'))
+    endif
   endif
 endfunction
 
@@ -302,14 +312,21 @@ endfunction
 function! s:EditModuleInstall() abort
   let module = vorpal#buffer().module()
   if module != {}
-    execute 'edit ' . module.install()
+    execute 'edit' module.install()
   endif
 endfunction
 
 function! s:EditModuleModule() abort
   let module = vorpal#buffer().module()
   if module != {}
-    execute 'edit ' . module.module()
+    execute 'edit' module.module()
+  endif
+endfunction
+
+function! s:GotoModuleHookMenu() abort
+  let module = vorpal#buffer().module()
+  if module != {}
+    execute 'tjump' module.name . '_menu'
   endif
 endfunction
 
@@ -325,6 +342,7 @@ call s:add_methods('module', ['install', 'module'])
 
 call s:command('-nargs=0 DrupalEditModuleInstall :execute s:LoadEditInstall()')
 call s:command('-nargs=0 DrupalEditModuleModule :execute s:LoadEditModule()')
+call s:command('-nargs=0 DrupalGotoModuleHookMenu :execute s:GotoModuleHookMenu()')
 call s:command('-nargs=1 DrupalAddModuleHook :execute s:AddModuleHook("<args>")')
 
 " Drush.
