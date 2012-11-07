@@ -92,6 +92,15 @@ snippet menu_item "menu item definition"
   'file' => '$11',
   'type' => $12,
 );
+endsnippet
 
-$0
+# Forms.
+
+snippet form_item "form item definition"
+\$form['$1'] = array(
+  '#type' => '$2',
+  '#title' => '$3',
+  '#description' => '$4',
+  '#required' => '${5:TRUE}',
+);
 endsnippet
