@@ -104,3 +104,19 @@ snippet form_item "Form item definition"
   '#required' => '${5:TRUE}',
 );
 endsnippet
+
+snippet form "Form definition" !b
+function `!p snip.rv = module_name()`_$1_form(\$form, &\$form_state) {
+  $2
+
+  return \$form;
+}
+
+function `!p snip.rv = module_name()`_`!p snip.rv = t[1]`_form_validate(\$form, &\$form_state) {
+  $3
+}
+
+function `!p snip.rv = module_name()`_`!p snip.rv = t[1]`_form_submit(\$form, &\$form_state) {
+  $4
+}
+endsnippet
