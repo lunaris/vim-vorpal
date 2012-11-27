@@ -12,21 +12,21 @@ endglobal
 
 # Names.
 
-snippet module_ "module" w
+snippet module_ "Module" w
 `!p snip.rv = module_name()`_
 endsnippet
 
-snippet theme_ "theme" w
+snippet theme_ "Theme" w
 `!p snip.rv = theme_name()`_
 endsnippet
 
 # Hooks.
 
-snippet hook_ "hook (expansion)" w
+snippet hook_ "Hook (expansion)" w
 `!p snip.rv = module_name("hook")`_
 endsnippet
 
-snippet hook_ "hook (definition)" !b
+snippet hook_ "Hook (definition)" !b
 /**
  * Implementation of hook_$1().
  */
@@ -37,7 +37,7 @@ endsnippet
 
 # Arrays.
 
-snippet array( "array"
+snippet array( "Array"
 array(
   $0
 );
@@ -45,7 +45,7 @@ endsnippet
 
 # Entities.
 
-snippet entity_info "entity information (item)"
+snippet entity_info "Entity information (item)"
 `${1:`!p snip.rv = module_name()`_${2:entity}}' => array(
   'label' => t('$3'),
   'plural label' => t('${4:$3s}'),
@@ -81,7 +81,7 @@ endsnippet
 
 # Menus.
 
-snippet menu_item "menu item definition"
+snippet menu_item "Menu item definition"
 \$items['$1'] = array(
   'title' => '$2',
   'description' => '$3',
@@ -96,7 +96,7 @@ endsnippet
 
 # Forms.
 
-snippet form_item "form item definition"
+snippet form_item "Form item definition"
 \$form['$1'] = array(
   '#type' => '$2',
   '#title' => '$3',
