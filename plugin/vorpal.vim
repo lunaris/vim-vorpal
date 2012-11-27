@@ -287,10 +287,12 @@ call s:add_methods('buffer',
 
 " Extensions (modules, themes, etc.).
 
+" Returns the name of the current extension's .info file.
 function s:extension_info() dict abort
   return self.path . '/' . self.name . '.info'
 endfunction
 
+" Opens the current extension's .info file for editing.
 function! s:EditInfo() abort
   let extension = vorpal#buffer().extension()
   if extension != {}
@@ -304,14 +306,17 @@ call s:command('-nargs=0 DrupalEditInfo :execute s:EditInfo()')
 
 " Modules.
 
+" Returns the name of the current modules .install file.
 function! s:module_install() dict abort
   return self.path . '/' . self.name . '.install'
 endfunction
 
+" Returns the name of the current module's .module file.
 function! s:module_module() dict abort
   return self.path . '/' . self.name . '.module'
 endfunction
 
+" Opens the current module's .install file for editing.
 function! s:EditModuleInstall() abort
   let module = vorpal#buffer().module()
   if module != {}
@@ -319,6 +324,7 @@ function! s:EditModuleInstall() abort
   endif
 endfunction
 
+" Opens the current module's .module file for editing.
 function! s:EditModuleModule() abort
   let module = vorpal#buffer().module()
   if module != {}
@@ -341,6 +347,7 @@ call s:command('-nargs=0 DrupalGotoModuleHookMenu :execute s:GotoModuleHookMenu(
 
 " Drush.
 
+" Executes the given command in the current buffer's Drupal directory.
 function! s:execute_in_drupal_dir(cmd) abort
   let cd = exists('*haslocaldir') && haslocaldir() ? 'lcd ' : 'cd '
   let dir = getcwd()
@@ -353,6 +360,8 @@ function! s:execute_in_drupal_dir(cmd) abort
   endtry
 endfunction
 
+" Runs the given drush command. If a bang is appended (as in Drush!), passes
+" the -y option to drush (which answers yes to all prompts).
 function! s:Drush(bang, cmd) abort
   if a:bang
     let drush = g:vorpal_drush_executable . ' -y'
@@ -368,6 +377,7 @@ endfunction
 
 call s:command('-bang -nargs=* Drush :execute s:Drush(<bang>0, <q-args>)')
 
+" Clears the named cache. If no name is given, clears all caches.
 function! s:DrushCacheClear(...) abort
   let cache = 'all'
   if a:0 > 0
@@ -377,7 +387,31 @@ function! s:DrushCacheClear(...) abort
   call s:Drush(0, 'cache-clear ' . cache)
 endfunction
 
+" Clears parts of Drupal's cache based on the current buffer's file type. In
+" cases where the cache to be cleared can't be accurately determined, clears
+" all caches.
+function! s:DrushCacheClearSmart() abort
+  " We're really not that smart.
+  let cache = 'all'
+
+  " We don't expect more than two extensions (.tpl.php and .views.inc being two
+  " notable examples).
+  let extension = expand("%:p:e:e")
+  if extension ==# 'css'
+    let cache = 'css-js'
+  elseif extension ==# 'js'
+    let cache = 'css-js'
+  elseif extension ==# 'tpl.php'
+    let cache = 'theme-registry'
+  elseif extension ==# 'views.inc'
+    let cache = 'views'
+  endif
+
+  call s:DrushCacheClear(cache)
+endfunction
+
 call s:command('-nargs=? DrushCacheClear :execute s:DrushCacheClear(<q-args>)')
+call s:command('-nargs=0 DrushCacheClearSmart :execute s:DrushCacheClearSmart()')
 
 " Reinstalls the given list of modules, or the current module if no arguments
 " are provided.
