@@ -396,9 +396,9 @@ function! s:DrushCacheClearSmart() abort
   " We don't expect more than two extensions (.tpl.php and .views.inc being two
   " notable examples).
   let extension = expand("%:p:e:e")
-  if extension ==# 'css'
-    let cache = 'css-js'
-  elseif extension ==# 'js'
+  if extension ==# 'css' || extension ==# 'less' ||
+    \ extension ==# 'js' || extension ==# 'scss'
+
     let cache = 'css-js'
   elseif extension ==# 'tpl.php'
     let cache = 'theme-registry'
@@ -411,6 +411,21 @@ endfunction
 
 call s:command('-nargs=? DrushCacheClear :execute s:DrushCacheClear(<f-args>)')
 call s:command('-nargs=0 DrushCacheClearSmart :execute s:DrushCacheClearSmart()')
+
+augroup vorpal_auto_cache_clear_smart
+  autocmd!
+  autocmd BufWrite *.css,*.engine,*.inc,*.install,*.js,*.less,
+    \*.php,*.profile,*.scss,*.test
+    \
+    \ if exists('b:drupal_dirs') |
+      \ let theme = vorpal#buffer().theme() |
+      \ if theme != {} |
+        \ echo "Clearing caches..." |
+        \ silent! call s:DrushCacheClearSmart() |
+        \ redraw! |
+      \ endif |
+    \ endif
+augroup END
 
 " Reinstalls the given list of modules, or the current module if no arguments
 " are provided.
