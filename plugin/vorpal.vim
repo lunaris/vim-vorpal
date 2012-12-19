@@ -410,7 +410,7 @@ function! s:DrushCacheClearSmart() abort
   call s:DrushCacheClear(cache)
 endfunction
 
-call s:command('-nargs=? DrushCacheClear :execute s:DrushCacheClear(<q-args>)')
+call s:command('-nargs=? DrushCacheClear :execute s:DrushCacheClear(<f-args>)')
 call s:command('-nargs=0 DrushCacheClearSmart :execute s:DrushCacheClearSmart()')
 
 " Reinstalls the given list of modules, or the current module if no arguments
