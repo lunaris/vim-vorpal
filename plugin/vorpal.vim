@@ -109,22 +109,21 @@ function! vorpal#extract_drupal_dirs(path) abort
     endif
 
     let current_tail = fnamemodify(current, ':t')
-    if current_tail ==# 'libraries' && info_dir !=# ''
-      let dirs['extension'] =
-        \ {'type': 'library', 'name': fnamemodify(info_dir, ':t'),
-          \ 'path': info_dir}
-    elseif current_tail ==# 'modules' && info_dir !=# ''
-      let dirs['extension'] =
-        \ {'type': 'module', 'name': fnamemodify(info_dir, ':t'),
-          \ 'path': info_dir}
-    elseif current_tail ==# 'profiles' && info_dir !=# ''
-      let dirs['extension'] =
-        \ {'type': 'profile', 'name': fnamemodify(info_dir, ':t'),
-          \ 'path': info_dir}
-    elseif current_tail ==# 'themes' && info_dir !=# ''
-      let dirs['extension'] =
-        \ {'type': 'theme', 'name': fnamemodify(info_dir, ':t'),
-          \ 'path': info_dir}
+    if info_dir !=# ''
+      let name = fnamemodify(info_dir, ':t')
+      if current_tail ==# 'libraries'
+        let dirs['extension'] =
+          \ {'type': 'library', 'name': name, 'path': info_dir}
+      elseif current_tail ==# 'modules'
+        let dirs['extension'] =
+          \ {'type': 'module', 'name': name, 'path': info_dir}
+      elseif current_tail ==# 'profiles'
+        let dirs['extension'] =
+          \ {'type': 'profile', 'name': name, 'path': info_dir}
+      elseif current_tail ==# 'themes'
+        let dirs['extension'] =
+          \ {'type': 'theme', 'name': name, 'path': info_dir}
+      endif
     endif
 
     let previous = current
