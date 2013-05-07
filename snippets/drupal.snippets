@@ -129,3 +129,53 @@ function `!p snip.rv = module_name()`_`!p snip.rv = t[1]`_form_submit(\$form, &\
   $4
 }
 endsnippet
+
+# PHPUnit tests.
+
+snippet test "PHPUnit test"
+/**
+ * Tests that $1
+ */
+public function test$2() {
+  // Arrange.
+  $3
+
+  // Act.
+  $4
+
+  // Assert.
+  $5
+}
+endsnippet
+
+snippet deptest "PHPUnit dependent test"
+/**
+ * Tests that $1
+ *
+ * @depends test$2
+ */
+public function test$3($4) {
+  // Assert.
+  $5
+}
+endsnippet
+
+snippet pau "PHPUnit assertion"
+\$this->assert${1:Equals}($1, $2,
+  ${3:'Failed asserting that $4.'});
+endsnippet
+
+snippet puae "PHPUnit assertEquals"
+\$this->assertEquals($1, $2,
+  ${3:'Failed asserting that $4.'});
+endsnippet
+
+snippet puahk "PHPUnit assertArrayHasKey"
+\$this->assertArrayHasKey(${1:'#$2'}, ${3:\$form},
+  ${4:'Failed asserting that $5.'});
+endsnippet
+
+snippet puanhk "PHPUnit assertArrayNotHasKey"
+\$this->assertArrayNotHasKey(${1:'#$2'}, ${3:\$form},
+  ${4:'Failed asserting that $5.'});
+endsnippet
