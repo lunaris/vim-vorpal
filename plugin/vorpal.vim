@@ -427,6 +427,12 @@ augroup vorpal_auto_cache_clear_smart
     \ endif
 augroup END
 
+" Locates the directory of the given target and opens a new tab in which it may
+" be explored.
+function! s:DrushTabDirectory(bang, target) abort
+  call s:execute_in_drupal_dir('tabnew | lcd `drush dd ' . target . '` | Ex')
+endfunction
+
 " Reinstalls the given list of modules, or the current module if no arguments
 " are provided.
 function! s:DrushReinstall(bang, ...) abort
