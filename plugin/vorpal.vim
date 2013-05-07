@@ -429,9 +429,11 @@ augroup END
 
 " Locates the directory of the given target and opens a new tab in which it may
 " be explored.
-function! s:DrushTabDirectory(bang, target) abort
-  call s:execute_in_drupal_dir('tabnew | lcd `drush dd ' . target . '` | Ex')
+function! s:DrushTabDirectory(target) abort
+  call s:execute_in_drupal_dir('tabnew | lcd `drush dd ' . a:target . '` | Ex')
 endfunction
+
+call s:command('-nargs=1 DrushTabDirectory :execute s:DrushTabDirectory(<f-args>)')
 
 " Reinstalls the given list of modules, or the current module if no arguments
 " are provided.
