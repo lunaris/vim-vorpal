@@ -71,10 +71,24 @@ function! vorpal#is_drupal_dir(path) abort
     \ isdirectory(path . 'themes')
 endfunction
 
+" Returns 1 iff the supplied path contains a PHPUnit directory.
+function! vorpal#has_phpunit_dir(path) abort
+  let path = s:sub(a:path, '[\/]$', '') . '/'
+  return isdirectory(path . 'phpunit')
+endfunction
+
 " Returns 1 iff the supplied path contains a .info file.
 function! vorpal#has_info_file(path) abort
   let path = s:sub(a:path, '[\/]$', '') . '/'
   return glob(path . '*.info') !=# ''
+endfunction
+
+function! vorpal#resolve_path(type, path) abort
+  if a:type ==# 'dir'
+    return a:path
+  else
+    return resolve(a:path)
+  endif
 endfunction
 
 " Extracts information about the hierarchy of the given path, including
@@ -93,13 +107,14 @@ function! vorpal#extract_drupal_dirs(path) abort
 
     " Is it a Drupal directory?
     if vorpal#is_drupal_dir(current)
-      if type ==# 'dir'
-        let dirs['drupal'] = {'path': current}
-      elseif type ==# 'link'
-        let dirs['drupal'] = {'path': resolve(current)}
-      endif
+      let dirs['drupal'] = {'path': vorpal#resolve_path(type, current)}
 
       " Is there a PHPUnit directory?
+      if vorpal#has_phpunit_dir(current)
+        let dirs['phpunit'] =
+          \ {'path': s:sub(vorpal#resolve_path(type, current), '[\/]$', '') .
+            \ '/phpunit'}
+      endif
 
       return dirs
     endif
@@ -107,11 +122,7 @@ function! vorpal#extract_drupal_dirs(path) abort
     " If we've not already located an extension directory (i.e., a library,
     " module, profile or theme directory), is this one?
     if info_dir ==# '' && vorpal#has_info_file(current)
-      if type ==# 'dir'
-        let info_dir = current
-      elseif type ==# 'link'
-        let info_dir = resolve(current)
-      endif
+      let info_dir = vorpal#resolve_path(type, current)
     endif
 
     " Further up the directory hierarchy, we can work out the extension's type
@@ -250,6 +261,15 @@ function! s:buffer_drupal() dict abort
   return {}
 endfunction
 
+function! s:buffer_phpunit() dict abort
+  let drupal_dirs = self.drupal_dirs()
+  if has_key(drupal_dirs, 'phpunit')
+    return drupal_dirs['phpunit']
+  endif
+
+  return {}
+endfunction
+
 function! s:buffer_extension() dict abort
   let drupal_dirs = self.drupal_dirs()
   if has_key(drupal_dirs, 'extension')
@@ -290,7 +310,7 @@ function! s:buffer_theme() dict abort
 endfunction
 
 call s:add_methods('buffer',
-  \ ['get_var', 'set_var', 'line', 'drupal_dirs', 'drupal',
+  \ ['get_var', 'set_var', 'line', 'drupal_dirs', 'drupal', 'phpunit',
     \ 'extension', 'library', 'module', 'profile', 'theme'])
 
 " Extensions (modules, themes, etc.).
@@ -470,6 +490,40 @@ function! s:DrushReinstall(bang, ...) abort
 endfunction
 
 call s:command('-bang -nargs=* DrushReinstall :execute s:DrushReinstall(<bang>0, <args>)')
+
+" Opens the unit test directory associated with the current module (or given
+" list of modules) in a split or tab, depending on the command passed.
+function! s:OpenUnitTestDirectory(open_command, ...) abort
+  let phpunit = vorpal#buffer().phpunit()
+  if phpunit !=# {}
+    if a:0 == 0
+      let current_module = vorpal#buffer().module()
+      if current_module != {}
+        let modules = [current_module.name]
+      endif
+    else
+      let modules = a:000
+    endif
+
+    let phpunit_tests_path = phpunit.path . '/tests'
+    for module in modules
+      " Attempt to find a test directory specific to the current module,
+      " falling back to the PHPUnit root directory if we can't.
+      let path = phpunit_tests_path . '/' . module
+      if !isdirectory(path)
+        let path = phpunit_tests_path
+      endif
+
+      execute a:open_command
+      execute 'lcd ' . path
+      e.
+    endfor
+  endif
+endfunction
+
+call s:command('-nargs=* SplitUnitTestDirectory :execute s:OpenUnitTestDirectory("split", <f-args>)')
+call s:command('-nargs=* VsplitUnitTestDirectory :execute s:OpenUnitTestDirectory("vsplit", <f-args>)')
+call s:command('-nargs=* TabUnitTestDirectory :execute s:OpenUnitTestDirectory("tabnew", <f-args>)')
 
 " Complete functions.
 
