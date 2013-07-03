@@ -430,7 +430,17 @@ augroup END
 " Locates the directory of the given target and opens a new tab in which it may
 " be explored.
 function! s:DrushTabDirectory(target) abort
-  call s:execute_in_drupal_dir('tabnew | lcd `drush dd ' . a:target . '` | Ex')
+  let value = @z
+  call s:execute_in_drupal_dir('let @z = system("drush dd ' . a:target . '")')
+
+  " Don't open a new tab if the current buffer is empty.
+  if bufname("%") !=# ""
+    tabnew
+  endif
+
+  execute 'lcd ' . @z
+  Explore
+  let @z = value
 endfunction
 
 call s:command('-nargs=1 DrushTabDirectory :execute s:DrushTabDirectory(<f-args>)')
