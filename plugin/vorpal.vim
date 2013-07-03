@@ -90,6 +90,8 @@ function! vorpal#extract_drupal_dirs(path) abort
 
   while current !=# previous
     let type = getftype(current)
+
+    " Is it a Drupal directory?
     if vorpal#is_drupal_dir(current)
       if type ==# 'dir'
         let dirs['drupal'] = {'path': current}
@@ -97,10 +99,14 @@ function! vorpal#extract_drupal_dirs(path) abort
         let dirs['drupal'] = {'path': resolve(current)}
       endif
 
+      " Is there a PHPUnit directory?
+
       return dirs
     endif
 
-    if vorpal#has_info_file(current)
+    " If we've not already located an extension directory (i.e., a library,
+    " module, profile or theme directory), is this one?
+    if info_dir ==# '' && vorpal#has_info_file(current)
       if type ==# 'dir'
         let info_dir = current
       elseif type ==# 'link'
@@ -108,8 +114,11 @@ function! vorpal#extract_drupal_dirs(path) abort
       endif
     endif
 
+    " Further up the directory hierarchy, we can work out the extension's type
+    " (library, module, profile or theme), at which point we build the
+    " extension dictionary.
     let current_tail = fnamemodify(current, ':t')
-    if info_dir !=# ''
+    if !has_key(dirs, 'extension') && info_dir !=# ''
       let name = fnamemodify(info_dir, ':t')
       if current_tail ==# 'libraries'
         let dirs['extension'] =
@@ -531,5 +540,3 @@ function! vorpal#complete_form_item_type(findstart, base) abort
     return results
   endif
 endfunction
-
-
