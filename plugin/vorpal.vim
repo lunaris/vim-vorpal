@@ -204,10 +204,10 @@ augroup vorpal_file_types
   autocmd!
   autocmd BufEnter *.engine,*.inc,*.install,*.module,*.php,*.profile,*.test
         \ if exists('b:drupal_dirs') |
-        \ set filetype=php |
-        \ if exists('did_UltiSnips_vim') |
-        \ UltiSnipsAddFiletypes drupal.php |
-        \ endif |
+          \ set filetype=php |
+          \ if exists('did_UltiSnips_vim') |
+            \ UltiSnipsAddFiletypes drupal.php |
+          \ endif |
         \ endif
 augroup END
 
