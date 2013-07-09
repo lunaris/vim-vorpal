@@ -183,6 +183,11 @@ function! s:detect(path)
       call buffer.set_var('&tags', escape(tags_file, ', ') .
             \ ',' . buffer.get_var('&tags'))
     endif
+
+    let vorpal_file = b:drupal_dirs['drupal']['path'] . '/.vorpal'
+    if filereadable(vorpal_file)
+      execute "source " . vorpal_file
+    endif
   endif
 endfunction
 
