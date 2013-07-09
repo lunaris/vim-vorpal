@@ -7,11 +7,15 @@ if !exists('g:vorpal_drush_executable')
   let g:vorpal_drush_executable = 'drush'
 endif
 
+if !exists('g:vorpal_auto_cache_clear_smart')
+  let g:vorpal_auto_cache_clear_smart = 0
+endif
+
 " Utilities.
 
 function! s:function(name) abort
   return function(substitute(a:name, '^s:',
-    \ matchstr(expand('<sfile>'), '<SNR>\d\+_'), ''))
+        \ matchstr(expand('<sfile>'), '<SNR>\d\+_'), ''))
 endfunction
 
 function! s:throw(error_message) abort
@@ -38,7 +42,7 @@ endfunction
 function! s:add_methods(namespace, methods) abort
   for method in a:methods
     let s:{a:namespace}_prototype[method] =
-      \ s:function('s:' . a:namespace . '_' . method)
+          \ s:function('s:' . a:namespace . '_' . method)
   endfor
 endfunction
 
@@ -67,8 +71,8 @@ augroup END
 function! vorpal#is_drupal_dir(path) abort
   let path = s:sub(a:path, '[\/]$', '') . '/'
   return isdirectory(path . 'includes') && isdirectory(path . 'modules') &&
-    \ isdirectory(path . 'profiles') && isdirectory(path . 'sites') &&
-    \ isdirectory(path . 'themes')
+        \ isdirectory(path . 'profiles') && isdirectory(path . 'sites') &&
+        \ isdirectory(path . 'themes')
 endfunction
 
 " Returns 1 iff the supplied path contains a PHPUnit directory.
@@ -112,8 +116,8 @@ function! vorpal#extract_drupal_dirs(path) abort
       " Is there a PHPUnit directory?
       if vorpal#has_phpunit_dir(current)
         let dirs['phpunit'] =
-          \ {'path': s:sub(vorpal#resolve_path(type, current), '[\/]$', '') .
-            \ '/phpunit'}
+              \ {'path': s:sub(vorpal#resolve_path(type, current), '[\/]$', '') .
+              \ '/phpunit'}
       endif
 
       return dirs
@@ -133,16 +137,16 @@ function! vorpal#extract_drupal_dirs(path) abort
       let name = fnamemodify(info_dir, ':t')
       if current_tail ==# 'libraries'
         let dirs['extension'] =
-          \ {'type': 'library', 'name': name, 'path': info_dir}
+              \ {'type': 'library', 'name': name, 'path': info_dir}
       elseif current_tail ==# 'modules'
         let dirs['extension'] =
-          \ {'type': 'module', 'name': name, 'path': info_dir}
+              \ {'type': 'module', 'name': name, 'path': info_dir}
       elseif current_tail ==# 'profiles'
         let dirs['extension'] =
-          \ {'type': 'profile', 'name': name, 'path': info_dir}
+              \ {'type': 'profile', 'name': name, 'path': info_dir}
       elseif current_tail ==# 'themes'
         let dirs['extension'] =
-          \ {'type': 'theme', 'name': name, 'path': info_dir}
+              \ {'type': 'theme', 'name': name, 'path': info_dir}
       endif
     endif
 
@@ -174,10 +178,10 @@ function! s:detect(path)
     let tags_file = b:drupal_dirs['drupal']['path'] . '/tags'
 
     if stridx(buffer.get_var('&tags'), escape(tags_file, ', ')) == -1 &&
-        \ filereadable(tags_file)
+          \ filereadable(tags_file)
 
       call buffer.set_var('&tags', escape(tags_file, ', ') .
-        \ ',' . buffer.get_var('&tags'))
+            \ ',' . buffer.get_var('&tags'))
     endif
   endif
 endfunction
@@ -194,12 +198,12 @@ augroup END
 augroup vorpal_file_types
   autocmd!
   autocmd BufEnter *.engine,*.inc,*.install,*.module,*.php,*.profile,*.test
-    \ if exists('b:drupal_dirs') |
-      \ set filetype=php |
-      \ if exists('did_UltiSnips_vim') |
+        \ if exists('b:drupal_dirs') |
+        \ set filetype=php |
+        \ if exists('did_UltiSnips_vim') |
         \ UltiSnipsAddFiletypes drupal.php |
-      \ endif |
-    \ endif
+        \ endif |
+        \ endif
 augroup END
 
 " Prototype namespaces.
@@ -219,7 +223,7 @@ let s:theme_prototype = {}
 function! s:buffer(...) abort
   let buffer = {'#': bufnr(a:0 ? a:1 : '%')}
   call extend(extend(buffer, s:buffer_prototype, 'keep'),
-    \ s:abstract_prototype, 'keep')
+        \ s:abstract_prototype, 'keep')
 
   if buffer.get_var('drupal_dirs') != {}
     return buffer
@@ -253,7 +257,7 @@ function! s:buffer_drupal() dict abort
   if has_key(drupal_dirs, 'drupal')
     let drupal = drupal_dirs['drupal']
     call extend(extend(drupal, s:drupal_prototype, 'keep'),
-      \ s:abstract_prototype, 'keep')
+          \ s:abstract_prototype, 'keep')
 
     return drupal
   endif
@@ -276,8 +280,8 @@ function! s:buffer_extension() dict abort
     let extension = drupal_dirs['extension']
 
     call extend(extend(extend(extension,
-      \ s:{extension['type']}_prototype, 'keep'),
-        \ s:extension_prototype, 'keep'), s:abstract_prototype, 'keep')
+          \ s:{extension['type']}_prototype, 'keep'),
+          \ s:extension_prototype, 'keep'), s:abstract_prototype, 'keep')
 
     return extension
   endif
@@ -288,30 +292,30 @@ endfunction
 function! s:buffer_library() dict abort
   let extension = self.extension()
   return extension != {} && extension['type'] ==# 'library' ?
-    extension : {}
+  extension : {}
 endfunction
 
 function! s:buffer_module() dict abort
   let extension = self.extension()
   return extension != {} && extension['type'] ==# 'module' ?
-    \ extension : {}
+        \ extension : {}
 endfunction
 
 function! s:buffer_profile() dict abort
   let extension = self.extension()
   return extension != {} && extension['type'] ==# 'profile' ?
-    \ extension : {}
+        \ extension : {}
 endfunction
 
 function! s:buffer_theme() dict abort
   let extension = self.extension()
   return extension != {} && extension['type'] ==# 'theme' ?
-    \ extension : {}
+        \ extension : {}
 endfunction
 
 call s:add_methods('buffer',
-  \ ['get_var', 'set_var', 'line', 'drupal_dirs', 'drupal', 'phpunit',
-    \ 'extension', 'library', 'module', 'profile', 'theme'])
+      \ ['get_var', 'set_var', 'line', 'drupal_dirs', 'drupal', 'phpunit',
+      \ 'extension', 'library', 'module', 'profile', 'theme'])
 
 " Extensions (modules, themes, etc.).
 
@@ -399,8 +403,12 @@ function! s:Drush(bang, cmd) abort
 
   let cmd = matchstr(a:cmd, '\v\C.{-}%($|\\@<!%(\\\\)*\|)@=')
 
-  call s:execute_in_drupal_dir('!' . drush . ' ' . cmd)
-  return matchstr(a:cmd, '\v\C\\@<!%(\\\\)*\|\zs.*')
+  let value = @z
+  call s:execute_in_drupal_dir('let @z = system("drush ' . cmd . '")')
+  let drush_output = @z
+  let @z = value
+
+  return drush_output
 endfunction
 
 call s:command('-bang -nargs=* Drush :execute s:Drush(<bang>0, <q-args>)')
@@ -413,11 +421,14 @@ function! s:DrushCacheClear(...) abort
   endif
 
   call s:Drush(0, 'cache-clear ' . cache)
+  echo "Caches cleared"
 endfunction
 
 " Clears parts of Drupal's cache based on the current buffer's file type. In
 " cases where the cache to be cleared can't be accurately determined, clears
 " all caches.
+"
+" TODO: Drupal 6 doesn't support all these different cache types.
 function! s:DrushCacheClearSmart() abort
   " We're really not that smart.
   let cache = 'all'
@@ -448,7 +459,7 @@ augroup vorpal_auto_cache_clear_smart
     \
     \ if exists('b:drupal_dirs') |
       \ let theme = vorpal#buffer().theme() |
-      \ if theme != {} |
+      \ if theme != {} && g:vorpal_auto_cache_clear_smart |
         \ echo "Clearing caches..." |
         \ silent! call s:DrushCacheClearSmart() |
         \ redraw! |
@@ -459,20 +470,18 @@ augroup END
 " Locates the directory of the given target and opens a new tab in which it may
 " be explored.
 function! s:DrushTabDirectory(target) abort
-  let value = @z
-  call s:execute_in_drupal_dir('let @z = system("drush dd ' . a:target . '")')
+  let directory = s:Drush(0, 'dd ' . a:target)
 
   " Don't open a new tab if the current buffer is empty.
   if bufname("%") !=# ""
     tabnew
   endif
 
-  execute 'lcd ' . @z
+  execute 'lcd ' . directory
   Explore
-  let @z = value
 endfunction
 
-call s:command('-nargs=1 DrushTabDirectory :execute s:DrushTabDirectory(<f-args>)')
+call s:command('-complete=custom,s:DrushExtensions -nargs=1 DrushTabDirectory :execute s:DrushTabDirectory(<f-args>)')
 
 " Reinstalls the given list of modules, or the current module if no arguments
 " are provided.
@@ -489,7 +498,7 @@ function! s:DrushReinstall(bang, ...) abort
   call s:Drush(a:bang, 'devel-reinstall ' . modules)
 endfunction
 
-call s:command('-bang -nargs=* DrushReinstall :execute s:DrushReinstall(<bang>0, <args>)')
+call s:command('-bang -complete=custom,s:DrushExtensions -nargs=* DrushReinstall :execute s:DrushReinstall(<bang>0, <args>)')
 
 " Opens the unit test directory associated with the current module (or given
 " list of modules) in a split or tab, depending on the command passed.
@@ -521,6 +530,22 @@ function! s:OpenUnitTestDirectory(open_command, ...) abort
   endif
 endfunction
 
-call s:command('-nargs=* SplitUnitTestDirectory :execute s:OpenUnitTestDirectory("split", <f-args>)')
-call s:command('-nargs=* VsplitUnitTestDirectory :execute s:OpenUnitTestDirectory("vsplit", <f-args>)')
-call s:command('-nargs=* TabUnitTestDirectory :execute s:OpenUnitTestDirectory("tabnew", <f-args>)')
+call s:command('-complete=custom,s:DrushExtensions -nargs=* SplitUnitTestDirectory :execute s:OpenUnitTestDirectory("split", <f-args>)')
+call s:command('-complete=custom,s:DrushExtensions -nargs=* VsplitUnitTestDirectory :execute s:OpenUnitTestDirectory("vsplit", <f-args>)')
+call s:command('-complete=custom,s:DrushExtensions -nargs=* TabUnitTestDirectory :execute s:OpenUnitTestDirectory("tabnew", <f-args>)')
+
+" Rebuilds the plugin's cache of available extensions.
+function! s:drush_rebuild_extension_cache() abort
+  let s:vorpal_extension_cache = s:Drush(0, 'pm-list --pipe')
+endfunction
+
+" Completion function for commands which operate on Drupal extensions.
+function! s:DrushExtensions(lead, command_line, position) abort
+  " Cache the list of available extensions to avoid waiting every time we
+  " attempt a completion.
+  if !exists('s:vorpal_extension_cache')
+    call s:drush_rebuild_extension_cache()
+  endif
+
+  return s:vorpal_extension_cache
+endfunction
