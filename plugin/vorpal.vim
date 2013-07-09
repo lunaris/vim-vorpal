@@ -7,6 +7,10 @@ if !exists('g:vorpal_drush_executable')
   let g:vorpal_drush_executable = 'drush'
 endif
 
+if !exists('g:vorpal_drush_default_site_alias')
+  let g:vorpal_drush_default_site_alias = ''
+endif
+
 if !exists('g:vorpal_auto_cache_clear_smart')
   let g:vorpal_auto_cache_clear_smart = 0
 endif
@@ -406,10 +410,14 @@ function! s:Drush(bang, cmd) abort
     let drush = g:vorpal_drush_executable
   endif
 
+  if g:vorpal_drush_default_site_alias !=# ''
+    let drush = drush . ' ' . g:vorpal_drush_default_site_alias
+  endif
+
   let cmd = matchstr(a:cmd, '\v\C.{-}%($|\\@<!%(\\\\)*\|)@=')
 
   let value = @z
-  call s:execute_in_drupal_dir('let @z = system("drush ' . cmd . '")')
+  call s:execute_in_drupal_dir('let @z = system("' . drush . ' ' . cmd . '")')
   let drush_output = @z
   let @z = value
 
