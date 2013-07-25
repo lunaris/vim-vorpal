@@ -49,7 +49,11 @@ endsnippet
 snippet array( "Array"
 array(
   $0
-);
+)
+endsnippet
+
+snippet => "Keyed array item"
+${1:'$2'} => ${3:'$4'},
 endsnippet
 
 # Entities.
@@ -160,13 +164,8 @@ public function test$3($4) {
 }
 endsnippet
 
-snippet pau "PHPUnit assertion"
+snippet pua "PHPUnit assertion"
 \$this->assert${1:Equals}($1, $2,
-  ${3:'Failed asserting that $4.'});
-endsnippet
-
-snippet puae "PHPUnit assertEquals"
-\$this->assertEquals($1, $2,
   ${3:'Failed asserting that $4.'});
 endsnippet
 
@@ -178,4 +177,14 @@ endsnippet
 snippet puanhk "PHPUnit assertArrayNotHasKey"
 \$this->assertArrayNotHasKey(${1:'#$2'}, ${3:\$form},
   ${4:'Failed asserting that $5.'});
+endsnippet
+
+snippet puac "PHPUnit assertContains"
+\$this->assertContains($1, $2,
+  ${3:'Failed asserting that $4.'});
+endsnippet
+
+snippet puae "PHPUnit assertEquals"
+\$this->assertEquals($1, $2,
+  ${3:'Failed asserting that $4.'});
 endsnippet
