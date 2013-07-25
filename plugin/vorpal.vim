@@ -562,3 +562,17 @@ function! s:DrushExtensions(lead, command_line, position) abort
 
   return s:vorpal_extension_cache
 endfunction
+
+" General-purpose functions.
+
+" Regenerates Drupal tags.
+function! s:DrupalRegenerateTags() abort
+  let tags_command =
+    \ 'ctags --langmap=php:.engine.inc.module.test.theme.install.php ' .
+      \ '--php-kinds=cdfi --languages=php --recurse'
+
+  call s:execute_in_drupal_dir('call system("' . tags_command . '")')
+  echo "Tags regenerated"
+endfunction
+
+call s:command('-nargs=0 DrupalRegenerateTags :execute s:DrupalRegenerateTags()')
